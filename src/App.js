@@ -1,10 +1,20 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import Hand from "./Hand";
+import RoundWins from "./RoundWins";
+import { getHandValue } from "./utils";
 
 export default function App() {
-  const [status, setStatus] = useState();
   const [game, setGame] = useState();
+
+  const player1HandValue = useMemo(
+    () => game?.player1 && getHandValue(game.player1.hand),
+    [game?.player1]
+  );
+  const player2HandValue = useMemo(
+    () => game?.player2 && getHandValue(game.player2.hand),
+    [game?.player2]
+  );
 
   const socketRef = useRef();
 
@@ -28,13 +38,9 @@ export default function App() {
 
     socket.on("player_join", (gameState) => {
       setGame(gameState);
-
-      setStatus("GAME_STARTING");
     });
 
-    socket.on("terminated", (e) => {
-      setStatus("TERMINATED");
-    });
+    socket.on("terminated", (e) => {});
 
     socket.on("not_found", (e) => {
       window.history.replaceState(null, null, "/");
@@ -52,59 +58,86 @@ export default function App() {
 
   return (
     <div className="app">
-      <Hand cards={game.player2?.hand || []} />
+      <div className="app-inner">
+        <div className="player-portrait">ENEMY</div>
 
-      <div>score: {game.player2?.score}</div>
+        <RoundWins
+          wins={game.player2?.score || 0}
+          roundsToWin={game.roundsToWin}
+        />
 
-      <div className="divider">
-        <div />
+        <Hand
+          cards={game.player2?.hand || []}
+          handValue={player2HandValue}
+          enemyHandValue={player1HandValue}
+          mirror
+          gameStatus={game.status}
+        />
 
-        <div>round {game.round + 1}</div>
+        <div className="divider">
+          <div />
 
-        <div>
-          <div className="card card-♠">♠</div>
-          <div>{game.deckSize - game.deckIndex}</div>
+          <div style={{ flex: 1 }}></div>
+
+          <div>
+            <div className="card">
+              <div className="card-back no-anim">
+                <div className="card-back-inner"></div>
+              </div>
+            </div>
+            <div>{game.deckSize - game.deckIndex}</div>
+          </div>
         </div>
-      </div>
 
-      <div>score: {game.player1?.score}</div>
+        <Hand
+          cards={game.player1?.hand || []}
+          handValue={player1HandValue}
+          enemyHandValue={player2HandValue}
+          gameStatus={game.status}
+        />
 
-      <Hand cards={game.player1?.hand || []} />
+        <RoundWins
+          wins={game.player1?.score || 0}
+          roundsToWin={game.roundsToWin}
+        />
 
-      <div className="actions">
-        {game.status === "PLAYER1_TURN" && (
-          <>
-            <button
-              className="action-button hit"
-              onClick={() => {
-                socketRef.current.emit("hit");
-              }}
-            >
-              HIT
-            </button>
+        <div className="player-portrait">
+          <div className="actions">
+            {game.status === "PLAYER1_TURN" && (
+              <>
+                <button
+                  className="action-button hit"
+                  onClick={() => {
+                    socketRef.current.emit("hit");
+                  }}
+                >
+                  HIT
+                </button>
 
-            <button
-              className="action-button stay"
-              onClick={() => {
-                socketRef.current.emit("stay");
-              }}
-            >
-              STAY
-            </button>
-          </>
-        )}
-        {game.status === "FINISHED" && (
-          <>
-            <button
-              className="action-button"
-              onClick={() => {
-                socketRef.current.emit("go_again");
-              }}
-            >
-              GO AGAIN
-            </button>
-          </>
-        )}
+                <button
+                  className="action-button stay"
+                  onClick={() => {
+                    socketRef.current.emit("stay");
+                  }}
+                >
+                  STAY
+                </button>
+              </>
+            )}
+            {game.status === "FINISHED" && (
+              <>
+                <button
+                  className="action-button"
+                  onClick={() => {
+                    socketRef.current.emit("go_again");
+                  }}
+                >
+                  GO AGAIN
+                </button>
+              </>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

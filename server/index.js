@@ -95,6 +95,7 @@ io.on("connection", (socket) => {
     game = {
       gameId,
       status: "INITIALIZING",
+      roundsToWin: 3,
       deck,
       deckSize: deck.length,
       deckIndex: 0,
