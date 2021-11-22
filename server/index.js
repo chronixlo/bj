@@ -27,14 +27,43 @@ io.on("connection", (socket) => {
     return card;
   };
 
-  const playPlayer2 = async () => {
+  const playPlayer2Start = async () => {
     await sleep(300);
-
-    let done = false;
 
     const player1HandValue = getHandValue(game.player1.hand);
 
-    while (!done) {
+    while (true) {
+      const handValue = getHandValue(game.player2.hand);
+
+      if (handValue > 21) {
+        game.player1.score++;
+        game.status = "FINISHED";
+        socket.emit("update", game);
+        return;
+      }
+
+      // stay @ 17 if over player
+      if (handValue > player1HandValue && handValue > 16) {
+        break;
+      }
+
+      game.player2.hand = [...game.player2.hand, drawCard()];
+
+      socket.emit("update", game);
+
+      await sleep(300);
+    }
+
+    game.status = "PLAYER1_TURN";
+    socket.emit("update", game);
+  };
+
+  const playPlayer2 = async () => {
+    await sleep(300);
+
+    const player1HandValue = getHandValue(game.player1.hand);
+
+    while (true) {
       const handValue = getHandValue(game.player2.hand);
 
       if (handValue > 21) {
@@ -61,11 +90,15 @@ io.on("connection", (socket) => {
   socket.on("create_game", async (event) => {
     gameId = Math.random().toString(36).slice(2);
 
+    const deck = getDeck();
+
     game = {
       gameId,
       status: "INITIALIZING",
-      deck: getDeck(),
+      deck,
+      deckSize: deck.length,
       deckIndex: 0,
+      round: 0,
       player1: {
         id: socket.id,
         score: 0,
@@ -148,12 +181,21 @@ io.on("connection", (socket) => {
 
     const handValue = getHandValue(game.player1.hand);
 
+    const mod = game.round % 2;
+
     if (handValue > 21) {
       game.status = "FINISHED";
       game.player2.score++;
     } else if (handValue === 21) {
-      game.status = "PLAYER2_TURN";
-      playPlayer2();
+      if (mod === 0) {
+        game.status = "PLAYER2_TURN";
+        playPlayer2();
+      } else {
+        game.status = "FINISHED";
+        if (handValue > getHandValue(game.player2.hand)) {
+          game.player1.score++;
+        }
+      }
     }
 
     socket.emit("update", game);
@@ -162,37 +204,76 @@ io.on("connection", (socket) => {
   socket.on("stay", () => {
     console.log("stay");
 
-    game.status = "PLAYER2_TURN";
-    socket.emit("update", game);
+    if (game.status !== "PLAYER1_TURN") {
+      return;
+    }
 
-    playPlayer2();
+    const mod = game.round % 2;
+
+    if (mod === 0) {
+      game.status = "PLAYER2_TURN";
+      playPlayer2();
+    } else {
+      const p1 = getHandValue(game.player1.hand);
+      const p2 = getHandValue(game.player2.hand);
+
+      if (p1 > p2) {
+        game.player1.score++;
+      } else if (p2 > p1) {
+        game.player2.score++;
+      }
+      game.status = "FINISHED";
+    }
+
+    socket.emit("update", game);
   });
 
   socket.on("go_again", async () => {
     console.log("go_again");
 
+    game.round++;
     game.status = "GAME_STARTING";
     game.player1.hand = [];
     game.player2.hand = [];
+
+    const mod = game.round % 2;
+    const startingPlayer = mod + 1;
+    const secondPlayer = 1 - mod + 1;
 
     socket.emit("update", game);
 
     await sleep(500);
 
-    game.player1.hand = [...game.player1.hand, drawCard()];
+    game["player" + startingPlayer].hand = [
+      ...game["player" + startingPlayer].hand,
+      drawCard(),
+    ];
     socket.emit("update", game);
     await sleep(300);
-    game.player2.hand = [...game.player2.hand, drawCard()];
+    game["player" + secondPlayer].hand = [
+      ...game["player" + secondPlayer].hand,
+      drawCard(),
+    ];
     socket.emit("update", game);
     await sleep(300);
-    game.player1.hand = [...game.player1.hand, drawCard()];
+    game["player" + startingPlayer].hand = [
+      ...game["player" + startingPlayer].hand,
+      drawCard(),
+    ];
     socket.emit("update", game);
     await sleep(300);
-    game.player2.hand = [...game.player2.hand, drawCard()];
+    game["player" + secondPlayer].hand = [
+      ...game["player" + secondPlayer].hand,
+      drawCard(),
+    ];
     socket.emit("update", game);
     await sleep(300);
 
-    game.status = "PLAYER1_TURN";
+    game.status = "PLAYER" + startingPlayer + "_TURN";
+
+    if (mod === 1) {
+      playPlayer2Start();
+    }
 
     socket.emit("update", game);
   });
@@ -218,4 +299,4 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(4000);
+server.listen(4001);

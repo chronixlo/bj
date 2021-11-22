@@ -37,6 +37,8 @@ code {
 
 .cards {
   display: flex;
+  height: 140px;
+  align-items: center;
 }
 
 .card {
@@ -62,6 +64,34 @@ code {
   color: #000;
 }
 
-.status {
-  margin: 20px;
+.divider {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.divider > div {
+  flex: 1;
+}
+
+.actions {
+  height: 60px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.action-button {
+  width: 120px;
+  border: 0;
+  background: #ddd;
+}
+
+.hit {
+  background: #0f0;
+}
+
+.stay {
+  background: #f00;
 }

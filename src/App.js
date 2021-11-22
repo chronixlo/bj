@@ -53,41 +53,59 @@ export default function App() {
   return (
     <div className="app">
       <Hand cards={game.player2?.hand || []} />
-      score: {game.player2?.score}
-      <div className="status">{game.status}</div>
-      <div className="status">{status}</div>
-      <Hand cards={game.player1?.hand || []} />
-      score: {game.player1?.score}
-      {game.status === "PLAYER1_TURN" && (
-        <div>
-          <button
-            onClick={() => {
-              socketRef.current.emit("hit");
-            }}
-          >
-            HIT
-          </button>
 
-          <button
-            onClick={() => {
-              socketRef.current.emit("stay");
-            }}
-          >
-            STAY
-          </button>
-        </div>
-      )}
-      {game.status === "FINISHED" && (
+      <div>score: {game.player2?.score}</div>
+
+      <div className="divider">
+        <div />
+
+        <div>round {game.round + 1}</div>
+
         <div>
-          <button
-            onClick={() => {
-              socketRef.current.emit("go_again");
-            }}
-          >
-            GO AGAIN
-          </button>
+          <div className="card card-♠">♠</div>
+          <div>{game.deckSize - game.deckIndex}</div>
         </div>
-      )}
+      </div>
+
+      <div>score: {game.player1?.score}</div>
+
+      <Hand cards={game.player1?.hand || []} />
+
+      <div className="actions">
+        {game.status === "PLAYER1_TURN" && (
+          <>
+            <button
+              className="action-button hit"
+              onClick={() => {
+                socketRef.current.emit("hit");
+              }}
+            >
+              HIT
+            </button>
+
+            <button
+              className="action-button stay"
+              onClick={() => {
+                socketRef.current.emit("stay");
+              }}
+            >
+              STAY
+            </button>
+          </>
+        )}
+        {game.status === "FINISHED" && (
+          <>
+            <button
+              className="action-button"
+              onClick={() => {
+                socketRef.current.emit("go_again");
+              }}
+            >
+              GO AGAIN
+            </button>
+          </>
+        )}
+      </div>
     </div>
   );
 }
