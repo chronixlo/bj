@@ -38,17 +38,19 @@ export default function Hand({
             <div className="card-face">
               <div className="card-face-top">
                 <div>{card.rank.symbol}</div>
-                <div>{card.suit.symbol}</div>
+                <div className="emoji">{card.suit.symbol}</div>
               </div>
 
               <div className="card-face-bottom">
                 <div>{card.rank.symbol}</div>
-                <div>{card.suit.symbol}</div>
+                <div className="emoji">{card.suit.symbol}</div>
               </div>
 
               <div className="card-face-inner">
                 {new Array(card.rank.value).fill().map((_, aIdx) => (
-                  <div key={aIdx}>{card.suit.symbol}</div>
+                  <div key={aIdx} className="emoji">
+                    {card.suit.symbol}
+                  </div>
                 ))}
               </div>
             </div>

@@ -4,6 +4,10 @@ import Hand from "./Hand";
 import RoundWins from "./RoundWins";
 import { getHandValue } from "./utils";
 
+const hasLargeEmojis = navigator.userAgent.match(
+  /iphone|ipad|android|macintosh/i
+);
+
 export default function App() {
   const [game, setGame] = useState();
 
@@ -57,7 +61,7 @@ export default function App() {
   }
 
   return (
-    <div className="app">
+    <div className={"app " + (hasLargeEmojis ? "small-emojis" : "")}>
       <div className="app-inner">
         <div className="player-portrait">ENEMY</div>
 

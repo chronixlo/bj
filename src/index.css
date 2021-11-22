@@ -151,6 +151,10 @@ button {
   display: flex;
 }
 
+.small-emojis .card-face .emoji {
+  font-size: 16px;
+}
+
 .card-face-top,
 .card-face-bottom {
   position: absolute;
@@ -183,6 +187,10 @@ button {
   gap: 2px;
   place-items: center;
   overflow: hidden;
+}
+
+.small-emojis .card-face-inner .emoji {
+  font-size: 8px;
 }
 
 .divider {
