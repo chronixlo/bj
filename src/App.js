@@ -124,15 +124,29 @@ export default function App() {
                 </button>
               </>
             )}
+
             {game.status === "FINISHED" && (
               <>
                 <button
                   className="action-button"
                   onClick={() => {
-                    socketRef.current.emit("go_again");
+                    socketRef.current.emit("next_round");
                   }}
                 >
-                  GO AGAIN
+                  NEXT ROUND
+                </button>
+              </>
+            )}
+
+            {game.status === "GAME_OVER" && (
+              <>
+                <button
+                  className="action-button"
+                  onClick={() => {
+                    socketRef.current.emit("create_game");
+                  }}
+                >
+                  NEW GAME
                 </button>
               </>
             )}

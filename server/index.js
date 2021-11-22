@@ -37,7 +37,14 @@ io.on("connection", (socket) => {
 
       if (handValue > 21) {
         game.player1.score++;
-        game.status = "FINISHED";
+        if (
+          game.player1.score === game.roundsToWin ||
+          game.player2.score === game.roundsToWin
+        ) {
+          game.status = "GAME_OVER";
+        } else {
+          game.status = "FINISHED";
+        }
         socket.emit("update", game);
         return;
       }
@@ -83,7 +90,14 @@ io.on("connection", (socket) => {
       await sleep(300);
     }
 
-    game.status = "FINISHED";
+    if (
+      game.player1.score === game.roundsToWin ||
+      game.player2.score === game.roundsToWin
+    ) {
+      game.status = "GAME_OVER";
+    } else {
+      game.status = "FINISHED";
+    }
     socket.emit("update", game);
   };
 
@@ -185,16 +199,30 @@ io.on("connection", (socket) => {
     const mod = game.round % 2;
 
     if (handValue > 21) {
-      game.status = "FINISHED";
       game.player2.score++;
+      if (
+        game.player1.score === game.roundsToWin ||
+        game.player2.score === game.roundsToWin
+      ) {
+        game.status = "GAME_OVER";
+      } else {
+        game.status = "FINISHED";
+      }
     } else if (handValue === 21) {
       if (mod === 0) {
         game.status = "PLAYER2_TURN";
         playPlayer2();
       } else {
-        game.status = "FINISHED";
         if (handValue > getHandValue(game.player2.hand)) {
           game.player1.score++;
+        }
+        if (
+          game.player1.score === game.roundsToWin ||
+          game.player2.score === game.roundsToWin
+        ) {
+          game.status = "GAME_OVER";
+        } else {
+          game.status = "FINISHED";
         }
       }
     }
@@ -223,14 +251,21 @@ io.on("connection", (socket) => {
       } else if (p2 > p1) {
         game.player2.score++;
       }
-      game.status = "FINISHED";
+      if (
+        game.player1.score === game.roundsToWin ||
+        game.player2.score === game.roundsToWin
+      ) {
+        game.status = "GAME_OVER";
+      } else {
+        game.status = "FINISHED";
+      }
     }
 
     socket.emit("update", game);
   });
 
-  socket.on("go_again", async () => {
-    console.log("go_again");
+  socket.on("next_round", async () => {
+    console.log("next_round");
 
     game.round++;
     game.status = "GAME_STARTING";
