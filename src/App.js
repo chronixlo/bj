@@ -19,7 +19,9 @@ export default function App() {
   const socketRef = useRef();
 
   useEffect(() => {
-    const socket = (socketRef.current = io("http://localhost:4000"));
+    const socket = (socketRef.current = io(
+      process.env.WS_HOST || "http://localhost:4000"
+    ));
 
     socket.on("connect", (e) => {
       const gameId = window.location.search.slice(1);
