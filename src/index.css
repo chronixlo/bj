@@ -3,6 +3,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #fff;
+  height: 100vh;
 }
 
 * {
@@ -19,6 +20,7 @@ button {
   background: #000d;
   display: flex;
   justify-content: center;
+  overflow: hidden;
 }
 
 .app-inner {

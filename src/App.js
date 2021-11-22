@@ -33,7 +33,7 @@ export default function App() {
     socket.on("join", (gameState) => {
       setGame(gameState);
 
-      window.history.replaceState(null, null, "/?" + gameState.gameId);
+      window.history.replaceState(null, null, "./?" + gameState.gameId);
     });
 
     socket.on("player_join", (gameState) => {
@@ -43,7 +43,7 @@ export default function App() {
     socket.on("terminated", (e) => {});
 
     socket.on("not_found", (e) => {
-      window.history.replaceState(null, null, "/");
+      window.history.replaceState(null, null, "./");
       socket.emit("create_game", {});
     });
 
