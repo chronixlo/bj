@@ -1,9 +1,14 @@
 const { getDeck, getHandValue } = require("./utils");
 
-const server = require("http").createServer();
+const server = require("http").createServer((req, res) => {
+  res.writeHead(200);
+  res.write("OK");
+  res.end();
+});
+
 const io = require("socket.io")(server, {
   cors: {
-    origin: "https://chronixlo.github.io",
+    origin: ["http://localhost:3000", "https://chronixlo.github.io"],
     methods: ["GET", "POST"],
   },
 });
