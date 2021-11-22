@@ -42,8 +42,11 @@ for (let i = 0; i < 52; i++) {
   });
 }
 
-const getDeck = () => {
-  return CARDS.slice().sort(() => Math.random() - 0.5);
+const getDeck = (num = 1) => {
+  return new Array(num)
+    .fill(CARDS)
+    .flat()
+    .sort(() => Math.random() - 0.5);
 };
 
 const getHandValue = (hand) => {
