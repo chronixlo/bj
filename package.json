@@ -20,7 +20,8 @@
     "eject": "react-scripts eject",
     "deploy-front": "git subtree push --prefix build origin gh-pages",
     "deploy-server": "git subtree push --prefix server origin server",
-    "build-deploy-front": "npm run build; git add .; git commit -m \"Update build\"; git push origin master; npm run deploy-front"
+    "build-deploy-front": "npm run build; git add .; git commit -m \"Update build\"; git push origin master; npm run deploy-front",
+    "deploy": "npm run build-deploy-front; npm run deploy-server"
   },
   "eslintConfig": {
     "extends": [
