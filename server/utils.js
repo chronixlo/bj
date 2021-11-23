@@ -50,7 +50,18 @@ const getDeck = (num = 1) => {
 };
 
 const getHandValue = (hand) => {
-  return hand.reduce((acc, next) => acc + next.rank.value, 0);
+  // without 11's
+  let handValue = hand.reduce((acc, next) => acc + next.rank.value, 0);
+
+  const aceCount = hand.filter((card) => card.rank.symbol === "A").length;
+
+  for (let i = 0; i < aceCount; i++) {
+    if (handValue < 12) {
+      handValue += 10;
+    }
+  }
+
+  return handValue;
 };
 
 module.exports = {

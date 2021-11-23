@@ -27,9 +27,17 @@ export default function Hand({
       <div className={"hand-value " + handValueClass}>
         {handValue}
 
-        {gameStatus === "FINISHED" && handValueClass === "hand-winning" && (
-          <span className="result-icon">🏆</span>
-        )}
+        {(gameStatus === "FINISHED" || gameStatus === "GAME_OVER") &&
+          handValueClass === "hand-winning" && (
+            <span
+              className={
+                "result-icon " +
+                (gameStatus === "GAME_OVER" ? "result-icon-big" : "")
+              }
+            >
+              🏆
+            </span>
+          )}
       </div>
 
       <div className="cards">

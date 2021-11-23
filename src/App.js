@@ -10,6 +10,7 @@ const hasLargeEmojis = navigator.userAgent.match(
 
 export default function App() {
   const [game, setGame] = useState();
+  const [userData, setUserData] = useState();
 
   const player1HandValue = useMemo(
     () => game?.player1 && getHandValue(game.player1.hand),
@@ -26,12 +27,20 @@ export default function App() {
     const socket = (socketRef.current = io(process.env.REACT_APP_WS_ROOT));
 
     socket.on("connect", (e) => {
+      socket.emit("auth", { secret: localStorage.getItem("secret") });
+
       const gameId = window.location.search.slice(1);
       if (gameId) {
         socket.emit("join_game", { gameId });
       } else {
         socket.emit("create_game", {});
       }
+    });
+
+    socket.on("user_data", (userData) => {
+      setUserData(userData);
+
+      localStorage.setItem("secret", userData.secret);
     });
 
     socket.on("join", (gameState) => {
@@ -63,7 +72,15 @@ export default function App() {
   return (
     <div className={"app " + (hasLargeEmojis ? "small-emojis" : "")}>
       <div className="app-inner">
-        <div className="player-portrait">ENEMY</div>
+        <div className="player-portrait">
+          {game.player2 ? (
+            <span>
+              {game.player2.name} ({game.player2.rating})
+            </span>
+          ) : (
+            <span>&nbsp;</span>
+          )}
+        </div>
 
         <RoundWins
           wins={game.player2?.score || 0}
@@ -106,6 +123,10 @@ export default function App() {
         />
 
         <div className="player-portrait">
+          <div>
+            {userData?.name} ({userData?.rating})
+          </div>
+
           <div className="actions">
             {game.status === "PLAYER1_TURN" && (
               <>
