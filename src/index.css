@@ -1,13 +1,19 @@
+* {
+  user-select: none;
+}
+
 body {
   margin: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #fff;
-  height: 100vh;
 }
 
-* {
-  user-select: none;
+html,
+#root,
+body,
+.app {
+  height: 100%;
 }
 
 body,
@@ -16,7 +22,6 @@ button {
 }
 
 .app {
-  height: 100vh;
   background: #000d;
   display: flex;
   justify-content: center;
