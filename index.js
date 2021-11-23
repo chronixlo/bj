@@ -1,3 +1,55 @@
+require("dotenv").config();
+
+const calcElo = require("./elo");
+
+const initOptions = {};
+const pgp = require("pg-promise")(initOptions);
+
+const db = pgp({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
+});
+
+async function getUserBySecret(secret) {
+  try {
+    return await db.oneOrNone("SELECT * FROM users WHERE secret = $1", [
+      secret,
+    ]);
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+async function createUser() {
+  try {
+    const secret = Math.random().toString(36).slice(2);
+    await db.any("INSERT INTO users(secret, rating, name) VALUES($1, $2, $3)", [
+      secret,
+      1000,
+      "Player " + Math.ceil(Math.random() * 99),
+    ]);
+
+    return getUserBySecret(secret);
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+async function updateRating(secret, rating) {
+  try {
+    await db.any("UPDATE users SET rating = $1 WHERE secret = $2", [
+      rating,
+      secret,
+    ]);
+
+    return true;
+  } catch (e) {
+    console.error(e);
+  }
+}
+
 const { getDeck, getHandValue } = require("./utils");
 
 const server = require("http").createServer((req, res) => {
@@ -25,6 +77,21 @@ io.on("connection", (socket) => {
 
   let gameId;
   let game;
+  let secret;
+
+  const updateUserRating = async () => {
+    const user = await getUserBySecret(secret);
+
+    const opponentRating = game.player2.rating;
+    const didWin = game.player1.score > game.player2.score;
+
+    const updated = calcElo(user.rating, opponentRating, didWin ? 1 : 0);
+    const rating = updated.n1;
+
+    await updateRating(secret, rating);
+    const updatedUser = await getUserBySecret(secret);
+    socket.emit("user_data", updatedUser);
+  };
 
   const drawCard = () => {
     const card = game.deck[game.deckIndex];
@@ -47,6 +114,7 @@ io.on("connection", (socket) => {
           game.player2.score === game.roundsToWin
         ) {
           game.status = "GAME_OVER";
+          updateUserRating();
         } else {
           game.status = "FINISHED";
         }
@@ -83,8 +151,14 @@ io.on("connection", (socket) => {
         break;
       }
 
+      // always hit
       if (handValue > player1HandValue) {
         game.player2.score++;
+        break;
+      }
+
+      // draw at 21
+      if (handValue === 21) {
         break;
       }
 
@@ -100,6 +174,7 @@ io.on("connection", (socket) => {
       game.player2.score === game.roundsToWin
     ) {
       game.status = "GAME_OVER";
+      updateUserRating();
     } else {
       game.status = "FINISHED";
     }
@@ -143,6 +218,8 @@ io.on("connection", (socket) => {
       id: Math.random().toString(36).slice(2),
       score: 0,
       hand: [],
+      name: "BOT",
+      rating: 1000,
     };
 
     game.status = "GAME_STARTING";
@@ -210,6 +287,7 @@ io.on("connection", (socket) => {
         game.player2.score === game.roundsToWin
       ) {
         game.status = "GAME_OVER";
+        updateUserRating();
       } else {
         game.status = "FINISHED";
       }
@@ -226,6 +304,7 @@ io.on("connection", (socket) => {
           game.player2.score === game.roundsToWin
         ) {
           game.status = "GAME_OVER";
+          updateUserRating();
         } else {
           game.status = "FINISHED";
         }
@@ -261,6 +340,7 @@ io.on("connection", (socket) => {
         game.player2.score === game.roundsToWin
       ) {
         game.status = "GAME_OVER";
+        updateUserRating();
       } else {
         game.status = "FINISHED";
       }
@@ -337,6 +417,22 @@ io.on("connection", (socket) => {
       games[gameId] = null;
       io.to(gameId).emit("terminated");
     }
+  });
+
+  socket.on("auth", async (e) => {
+    let user;
+
+    if (e.secret) {
+      user = await getUserBySecret(e.secret);
+    }
+
+    if (!user) {
+      user = await createUser();
+    }
+
+    secret = user.secret;
+
+    socket.emit("user_data", user);
   });
 });
 
