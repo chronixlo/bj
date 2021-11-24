@@ -197,7 +197,7 @@ button {
   background: #fff;
   animation: flip 100ms ease-in 300ms forwards;
   font-weight: 300;
-  line-height: 0.8;
+  line-height: 1;
   font-size: 20px;
   display: flex;
 }
