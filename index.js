@@ -233,7 +233,7 @@ io.on("connection", (socket) => {
       score: 0,
       hand: [],
       name: "BOT",
-      rating: 1000,
+      rating: 1500,
     };
 
     game.status = "GAME_STARTING";
