@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import Hand from "./Hand";
+import LeaderboardDialog from "./LeaderboardDialog";
 import RoundWins from "./RoundWins";
 import { getHandValue } from "./utils";
 
@@ -11,6 +12,8 @@ const hasLargeEmojis = navigator.userAgent.match(
 export default function App() {
   const [game, setGame] = useState();
   const [userData, setUserData] = useState();
+  const [leaderboardVisible, setLeaderboardVisible] = useState(false);
+  const [leaderboardData, setLeaderboardData] = useState();
 
   const player1HandValue = useMemo(
     () => game?.player1 && getHandValue(game.player1.hand),
@@ -29,12 +32,18 @@ export default function App() {
     socket.on("connect", (e) => {
       socket.emit("auth", { secret: localStorage.getItem("secret") });
 
+      socket.emit("get_leaderboard");
+
       const gameId = window.location.search.slice(1);
       if (gameId) {
         socket.emit("join_game", { gameId });
       } else {
         socket.emit("create_game", {});
       }
+    });
+
+    socket.on("leaderboard_data", (leaderboard) => {
+      setLeaderboardData(leaderboard);
     });
 
     socket.on("user_data", (userData) => {
@@ -72,6 +81,16 @@ export default function App() {
   return (
     <div className={"app " + (hasLargeEmojis ? "small-emojis" : "")}>
       <div className="app-inner">
+        <button
+          className="icon-button leaderboard-button"
+          onClick={() => {
+            socketRef.current.emit("get_leaderboard");
+            setLeaderboardVisible(true);
+          }}
+        >
+          🥇
+        </button>
+
         <div className="player-portrait">
           {game.player2 ? (
             <span>
@@ -178,6 +197,13 @@ export default function App() {
           </div>
         </div>
       </div>
+
+      {leaderboardVisible && (
+        <LeaderboardDialog
+          data={leaderboardData}
+          onClose={() => setLeaderboardVisible(false)}
+        />
+      )}
     </div>
   );
 }
