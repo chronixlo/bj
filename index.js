@@ -22,6 +22,16 @@ async function getUserBySecret(secret) {
   }
 }
 
+async function getLeaderboard(secret) {
+  try {
+    return await db.any(
+      "SELECT name, rating FROM users ORDER BY rating desc LIMIT 5"
+    );
+  } catch (e) {
+    console.error(e);
+  }
+}
+
 async function createUser() {
   try {
     const secret = Math.random().toString(36).slice(2);
@@ -60,7 +70,11 @@ const server = require("http").createServer((req, res) => {
 
 const io = require("socket.io")(server, {
   cors: {
-    origin: ["http://localhost:3000", "https://chronixlo.github.io"],
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "https://chronixlo.github.io",
+    ],
     methods: ["GET", "POST"],
   },
 });
@@ -434,6 +448,16 @@ io.on("connection", (socket) => {
 
     socket.emit("user_data", user);
   });
+
+  socket.on("get_leaderboard", async (e) => {
+    const users = await getLeaderboard();
+
+    socket.emit("leaderboard_data", users);
+  });
 });
 
-server.listen(process.env.PORT || 4000);
+const port = process.env.PORT || 4000;
+
+server.listen(port);
+
+console.log("live on " + port);
