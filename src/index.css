@@ -203,7 +203,7 @@ button {
 }
 
 .small-emojis .card-face .emoji {
-  font-size: 16px;
+  font-size: 12px;
 }
 
 .card-face-top,
@@ -241,7 +241,7 @@ button {
 }
 
 .small-emojis .card-face-inner .emoji {
-  font-size: 8px;
+  font-size: 6px;
 }
 
 .divider {
